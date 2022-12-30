@@ -74,14 +74,12 @@ public:
                 vec2 cx = (center);
                 vec2 px = (gl_FragCoord.xy);
                 float dist = distance(cx, px);
-                // gl_FragColor = color;
-                gl_FragColor.r = 1.0;
-                gl_FragColor.g = 0.0;
-                gl_FragColor.b = 0.0;
-                if (dist < strokeSize) {
-                    gl_FragColor.a = 1.0;
-                } else {
+                gl_FragColor = color;
+                if (dist >= strokeSize) {
                     gl_FragColor.a = 0.0;
+                    gl_FragDepth = 0.0;
+                } else {
+                    gl_FragDepth = 1.0;
                 }
             }
             )";
@@ -123,14 +121,14 @@ public:
         program.enableAttributeArray(vertexLocation);
         program.setAttributeArray(vertexLocation, squareVertices, 3);
         program.setUniformValue(matrixLocation, pmvMatrix);
-        program.setUniformValue(colorLocation, QColor(0, 255, 0, 255));
+        program.setUniformValue(colorLocation, QColor(0, 255, 0, 100));
         program.setUniformValue(viewportSizeLocation, m_size);
         program.setUniformValue(centerLocation, p * m_dpr);
         program.setUniformValue(strokeSizeLocation, pointSize * m_dpr);
 
         fns.glEnable(GL_BLEND);
         fns.glEnable(GL_DEPTH_TEST);
-        fns.glDepthFunc(GL_ALWAYS);
+        fns.glDepthFunc(GL_GREATER);
         fns.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         fns.glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, squareIndices);
         program.disableAttributeArray(vertexLocation);
@@ -141,6 +139,7 @@ public:
         fns.initializeOpenGLFunctions();
         if (!m_initted) {
             fns.glClearColor(0.3, 0.3, 0.3, 1.0);
+            fns.glClearDepthf(0.0);
             fns.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             m_initted = true;
         }
@@ -176,6 +175,8 @@ public:
             case CanvassyMessage::Up: {
                 m_lastPos = QPointF();
                 m_pos = QPointF();
+                fns.glClearDepthf(0.0);
+                fns.glClear(GL_DEPTH_BUFFER_BIT);
                 break;
             }
             }
