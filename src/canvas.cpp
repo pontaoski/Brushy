@@ -49,6 +49,7 @@ class CanvassyRenderer : public QQuickFramebufferObject::Renderer
     QPointF m_lastPos;
     QSize m_size;
     float m_dpr;
+    qreal m_velocity;
 
     // messages
     QVarLengthArray<CanvassyMessage, 10> m_messages;
@@ -96,7 +97,7 @@ public:
     }
     ~CanvassyRenderer() { }
 
-    void paint(QPointF p) {
+    void paint(QPointF p, float velocity) {
         QOpenGLFunctions fns;
         fns.initializeOpenGLFunctions();
 
@@ -105,7 +106,7 @@ public:
 
         auto x = static_cast<GLfloat>(p.x());
         auto y = static_cast<GLfloat>(p.y());
-        const auto pointSize = 10.0f;
+        const float pointSize = 5.0f + (velocity/3.0);
 
         const GLfloat squareVertices[] = {
             x - pointSize, y - pointSize, 0.0f,
@@ -121,7 +122,7 @@ public:
         program.enableAttributeArray(vertexLocation);
         program.setAttributeArray(vertexLocation, squareVertices, 3);
         program.setUniformValue(matrixLocation, pmvMatrix);
-        program.setUniformValue(colorLocation, QColor(0, 255, 0, 100));
+        program.setUniformValue(colorLocation, QColor(0, 255, 0, 255));
         program.setUniformValue(viewportSizeLocation, m_size);
         program.setUniformValue(centerLocation, p * m_dpr);
         program.setUniformValue(strokeSizeLocation, pointSize * m_dpr);
@@ -149,8 +150,9 @@ public:
             case CanvassyMessage::Down: {
                 m_lastPos = msg.down.pos;
                 m_pos = msg.down.pos;
+                m_velocity = 0.0;
                 program.bind();
-                paint(m_pos);
+                paint(m_pos, m_velocity);
                 program.release();
                 break;
             }
@@ -159,15 +161,16 @@ public:
                 m_pos = msg.move.pos;
 
                 auto line = QLineF(m_pos, m_lastPos);
+                m_velocity = (line.length() + m_velocity) / 2.0;
                 program.bind();
                 if (line.length() > 1.0) {
                     int n = line.length();
                     for (int i = 0; i < n; i++) {
                         auto t = qreal(i) / qreal(n);
-                        paint(line.pointAt(t));
+                        paint(line.pointAt(t), m_velocity);
                     }
                 } else {
-                    paint(m_pos);
+                    paint(m_pos, m_velocity);
                 }
                 program.release();
                 break;
@@ -175,6 +178,7 @@ public:
             case CanvassyMessage::Up: {
                 m_lastPos = QPointF();
                 m_pos = QPointF();
+                m_velocity = 0.0;
                 fns.glClearDepthf(0.0);
                 fns.glClear(GL_DEPTH_BUFFER_BIT);
                 break;
