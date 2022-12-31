@@ -203,21 +203,19 @@ public:
         program.setUniformValue(centerLocation, p * m_dpr);
         program.setUniformValue(strokeSizeLocation, pointSize * m_dpr);
 
+        fns.glActiveTexture(GL_TEXTURE0);
+        program.setUniformValue(inputTextureLocation, 0);
+
         program.setUniformValue(directionLocation, QVector2D(1.0f / m_size.width(), 0.0f));
         m_pass1->bind();
         fns.glActiveTexture(GL_TEXTURE0);
         fns.glBindTexture(GL_TEXTURE_2D, m_other->framebufferObject()->texture());
-        program.setUniformValue(inputTextureLocation, 0);
         fns.glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, squareIndices);
-        m_pass1->release();
 
         program.setUniformValue(directionLocation, QVector2D(0.0f, 1.0f / m_size.height()));
         m_pass2->bind();
-        fns.glActiveTexture(GL_TEXTURE0);
-        fns.glBindTexture(GL_TEXTURE_2D, m_pass1->texture());
-        program.setUniformValue(inputTextureLocation, 0);
+        // fns.glBindTexture(GL_TEXTURE_2D, m_pass1->texture());
         fns.glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, squareIndices);
-        m_pass2->release();
 
         program.disableAttributeArray(vertexLocation);
     }
