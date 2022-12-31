@@ -3,6 +3,7 @@
 #include <QOpenGLShaderProgram>
 #include <QQuickWindow>
 #include "canvas.h"
+#include "subcanvas.h"
 
 struct CanvassyMessage {
     enum Type {
@@ -106,7 +107,7 @@ public:
 
         auto x = static_cast<GLfloat>(p.x());
         auto y = static_cast<GLfloat>(p.y());
-        const float pointSize = 5.0f + (velocity/3.0);
+        const float pointSize = 5.0f + (velocity/5.0);
 
         const GLfloat squareVertices[] = {
             x - pointSize, y - pointSize, 0.0f,
@@ -208,6 +209,8 @@ struct Canvassy::Private
 {
     QPoint pos;
     QVarLengthArray<CanvassyMessage, 10> messages;
+    CanvassyRenderer* renderer = nullptr;
+    Subcanvassy* subcanvassy = nullptr;
 };
 
 Canvassy::Canvassy(QQuickItem* parent) : QQuickFramebufferObject(parent), d(new Private)
@@ -220,7 +223,9 @@ Canvassy::~Canvassy()
 }
 QQuickFramebufferObject::Renderer* Canvassy::createRenderer() const
 {
-    return new CanvassyRenderer(const_cast<Canvassy*>(this));
+    d->renderer = new CanvassyRenderer(const_cast<Canvassy*>(this));
+    d->subcanvassy->attach(d->renderer);
+    return d->renderer;
 }
 void Canvassy::mousePressEvent(QMouseEvent* event)
 {
@@ -235,6 +240,18 @@ void Canvassy::mouseMoveEvent(QMouseEvent* event)
 void Canvassy::mouseReleaseEvent(QMouseEvent*) {
     d->messages << CanvassyMessage::CUp();
     update();
+}
+Subcanvassy* Canvassy::subcanvassy()
+{
+    return d->subcanvassy;
+}
+void Canvassy::setSubcanvassy(Subcanvassy* subcanvas)
+{
+    if (d->subcanvassy == subcanvas)
+        return;
+
+    d->subcanvassy = subcanvas;
+    Q_EMIT subcanvassyChanged();
 }
 QVarLengthArray<CanvassyMessage, 10>& Canvassy::messages() const
 {

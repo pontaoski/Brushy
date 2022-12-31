@@ -1,5 +1,6 @@
-import QtQuick 2.10
+import QtQuick 2.12
 import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 import cc.blackquill.janet.Brushy 1.0
 
 ApplicationWindow {
@@ -7,9 +8,20 @@ ApplicationWindow {
     width: 800
     height: 800
 
-    Canvassy {
-        width: 800
-        height: 800
-        anchors.centerIn: parent
+    Item {
+        Canvassy {
+            width: 400
+            height: 800
+            implicitWidth: 400
+            implicitHeight: 800
+            subcanvassy: sub
+        }
+        Subcanvassy {
+            id: sub
+            width: 400
+            height: 800
+            implicitWidth: 400
+            implicitHeight: 800
+        }
     }
 }

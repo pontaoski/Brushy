@@ -5,7 +5,12 @@ int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
 	QQmlApplicationEngine engine;
-	engine.load(QUrl("qrc:/main.qml"));
-	Q_ASSERT(engine.rootObjects().count() == 1);
+	const auto url = QUrl("qrc:/main.qml");
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated, &app, [url](QObject *obj, const QUrl &objUrl) {
+        if ((obj == nullptr) && url == objUrl) {
+            QCoreApplication::exit(-1);
+        }
+    }, Qt::QueuedConnection);
+	engine.load(url);
 	return app.exec();
 }
