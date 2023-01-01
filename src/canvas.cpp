@@ -5,6 +5,11 @@
 #include "canvas.h"
 #include "subcanvas.h"
 
+inline float lerp(float a, float b, float f)
+{
+    return a * (1.0 - f) + (b * f);
+}
+
 struct CanvassyMessage {
     enum Type {
         Down,
@@ -162,7 +167,8 @@ public:
                 m_pos = msg.move.pos;
 
                 auto line = QLineF(m_pos, m_lastPos);
-                m_velocity = (line.length() + m_velocity) / 2.0;
+                m_velocity = lerp(line.length(), m_velocity, 0.9);
+                
                 program.bind();
                 if (line.length() > 1.0) {
                     int n = line.length();

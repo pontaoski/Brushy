@@ -10,17 +10,17 @@ ApplicationWindow {
 
     Item {
         Canvassy {
-            width: 400
+            width: 800
             height: 800
-            implicitWidth: 400
+            implicitWidth: 800
             implicitHeight: 800
             subcanvassy: sub
         }
         Subcanvassy {
             id: sub
-            width: 400
+            width: 800
             height: 800
-            implicitWidth: 400
+            implicitWidth: 800
             implicitHeight: 800
         }
     }
